@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block mainbody %}
+    <div id="container">
+        <h2>{{ number }} movie(s) in your Seen List:</h2>
+
+        {% for item in items %}
+            <h2><a href="/movie/movie_detail/{{ item.movieid }}" target="_self">{{ item.title }}</a></h2>
+
+            <form role="form" action="/movie/seen/{{ item.movieid }}" method="post">
+                {% csrf_token %}
+                <input class="del-button" type="submit" value="Delete">
+            </form>
+
+            <img src="{{ item.poster }}" alt="Cannot load photo, sorry!" width="200" height="320">
+            <hr>
+        {% endfor %}
+    </div>
+
+{% endblock %}

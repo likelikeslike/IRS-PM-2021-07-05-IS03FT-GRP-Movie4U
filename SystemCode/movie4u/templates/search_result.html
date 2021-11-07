@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block mainbody %}
+
+    <div id="search">
+        {% if  search %}
+            <h2>{{ number1 }} movie(s) with "{{ search1 }}":</h2>
+            <hr>
+        {% endif %}
+
+        {% for movie in movies %}
+            <h2><a href="/movie/movie_detail/{{ movie.movieid }}" target="_self">{{ movie.title }}</a></h2>
+            <img src="{{ movie.poster }}" alt="Cannot load photo, sorry!" width="200" height="320">
+            <hr>
+        {% endfor %}
+    </div>
+{% endblock %}

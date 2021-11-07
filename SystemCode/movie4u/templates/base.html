@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Movie4U</title>
+    <meta name="robots" content="noindex">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% load static %}
+    <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet" id="bootstrap-css">
+    <link href="{% static "css/navbar.css" %}" rel="stylesheet">
+    <script src="{% static "js/jquery-1.10.2.min.js.download" %}"></script>
+    <script src="{% static "js/bootstrap.min.js.download" %}"></script>
+    <link href="{% static "css/font-awesome.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/bootstrap-social.css" %}" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}"/>
+</head>
+
+{% load static %}
+<body style="background-color:#FAFAD2;">
+<nav class="navbar navbar-default navbar-inverse" role="navigation" style="margin-bottom: 0">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/"><span class=" 	glyphicon glyphicon-home"></span> Home</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li><a href="/movie/movie_all/1"><span class="glyphicon glyphicon-film"></span> Movies</a></li>
+            </ul>
+            <form class="navbar-form navbar-left" id="search--form" onsubmit="searchSubmit()">
+                {% csrf_token %}
+
+                <input type="text" name="title" id="search-input" class="form-control"
+                       placeholder="Search Movies" onkeyup="start_timer()" size="55" autocomplete="off" />
+
+                <input type="submit" class="btn btn-default" name="search" value="Submit"/>
+
+                <div class="searchlistdiv"
+                     style="position:absolute;top:42px;left:295px;user-select:none;display:none;width: 380px;"
+                     aria-expanded="false">
+                    <div class="search-movie">Movie:</div>
+                </div>
+            </form>
+
+            <ul class="nav navbar-nav navbar-right">
+                {% if user.is_authenticated %}
+                    <li>
+                        <p class="navbar-text" style="color:#fff9fe;">
+                            Welcome, {{ user.username }}</p></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle"
+                           data-toggle="dropdown">Me<span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="/movie/seen/">Seen List</a></li>
+                            <li class="divider"></li>
+                            <li><a href="/movie/expect/">Expect List</a></li>
+                        </ul>
+                    </li>
+                    <li style="align-items: center">
+                        <button class="btn btn-tumblr" onclick="logout()" style="margin-top:8px">Logout</button>
+                    </li>
+                {% else %}
+                    {% if message %}
+                        <li><p class="navbar-text" style="color:red;">{{ message }}</p></li>
+                    {% endif %}
+                    <li><p class="navbar-text">Already have an account?</p></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle"
+                           data-toggle="dropdown"><b>Login</b> <span class="caret"></span></a>
+                        <ul id="login-dp" class="dropdown-menu">
+                            <li>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        Login
+                                        <form class="form" role="form" method="post" action="/user/login/"
+                                              accept-charset="UTF-8" id="login-nav">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                <label class="sr-only" for="exampleInputEmail2">User Name</label>
+                                                <input name='username' class="form-control" id="exampleInputEmail2"
+                                                       placeholder="User Name">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="sr-only" for="exampleInputPassword2">Password</label>
+                                                <input name="password" type="password" class="form-control"
+                                                       id="exampleInputPassword2" placeholder="Password">
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="hidden" name="path" value="{{ request.path }}">
+                                                <input type="submit" class="btn btn-primary btn-block" value="Sign in"/>
+                                            </div>
+                                            <div class="checkbox">
+                                                <label>
+                                                    <input type="checkbox"> keep me logged-in
+                                                </label>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="bottom text-center">
+                                        New here ? <a href="/user/register/"><b>Join Us</b></a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                {% endif %}
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = jQuery.trim(cookies[i]);
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    (function (d, s, id) {
+        let js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+    function logout() {
+        $.get("/user/logout/", function () {
+            location.reload();
+        });
+        {#        location.href = "/user/logout/";#}
+    }
+
+</script>
+<script>
+    function searchSubmit() {
+        const action_src = '/movie/search/movie/' + document.getElementById("search-input").value + '/1';
+        document.getElementById('search--form').action = action_src;
+    }
+
+    $(".form-control").bind('blur', function () {
+        setTimeout(function () {
+            $(".searchlistdiv").hide();
+        }, 150);
+    });
+    let last_input_time = Date.now();
+
+    function start_timer() {
+        const this_input_time = Date.now();
+        last_input_time = this_input_time;
+        setTimeout(
+            function (this_input_time) {
+                if (last_input_time === this_input_time)
+                    showResult(document.getElementById('search-input').value);
+            }, 150, this_input_time);
+    }
+
+    function showResult(str) {
+        if (str.length === 0) {
+            $(".searchlistdiv").hide();
+            return;
+        }
+        const path = "/movie/search_suggest/" + str;
+        $.get(path, function (data) {
+            let link;
+            let img;
+            let i;
+            data = JSON.parse(data);
+            if (document.getElementById('search-input').value !== data.text)
+                return;
+            $(".search-movie").siblings().remove();
+            for (i = data.movie.length - 1; i >= 0; i--) {
+                img = "<img src='" + data.movie[i].poster + "' width='60' height='75'></img>";
+                link = "<div class='suggest' onclick=\"location.href='/movie/movie_detail/"
+                    + data.movie[i].movieid + "'\">" + img + "<b>" + data.movie[i].title + "</b></div>";
+                $(".search-movie").after(link)
+            }
+            if (data.movie.length === 0)
+                $(".search-movie").after("<div class='no_suggest'><b>No suggestion!</b></div>")
+
+
+            $(".searchlistdiv").show();
+        });
+    }
+</script>
+
+{% block mainbody %}
+    {% load static %}
+    <div style=" margin-left: 20%; margin-top: 10%;">
+        <p style="color: whitesmoke; font-size: 20pt"><b>Recently Popular:</b></p>
+        {% for movie in popular %}
+            <a href="/movie/movie_detail/{{ movie.movieid }}">
+                <img id="poster" class="img-rounded" src="{{ movie.poster }}" width="125" height="180">
+            </a>
+        {% endfor %}
+    </div>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}"/>
+
+    {% load static %}
+    <div style="margin-left: 20%; margin-top: 10%;">
+        <p style="color: whitesmoke; font-size: 20pt"><b>Recommendation For You:</b></p>
+        {% for movie in recommendation %}
+            <a href="/movie/movie_detail/{{ movie.movieid }}">
+                <img id="poster" class="img-rounded" src="{{ movie.poster }}" width="125" height="180">
+            </a>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+
+</body>
+</html>

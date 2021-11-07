@@ -1,0 +1,174 @@
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_protect
+from .models import *
+from django.http import HttpResponse
+import json
+import math
+
+from .initializer import search_cache, search_index
+
+
+def add_seen(request, movie_id):
+    if request.is_ajax():
+        history = Seen.objects.filter(movieid_id=movie_id, username=request.user.get_username())
+        if len(history) == 0:
+            movie = Popularity.objects.get(movieid_id=movie_id)
+            weight = movie.weight
+            movie.delete()
+            new_record = Popularity(movieid_id=movie_id, weight=weight + 3)
+            new_record.save()
+            new_record = Seen(movieid_id=movie_id, username=request.user.get_username())
+            new_record.save()
+            return HttpResponse('1')
+        else:
+            history.delete()
+            return HttpResponse('0')
+
+
+def add_expect(request, movie_id):
+    if request.is_ajax():
+        history = Expect.objects.filter(movieid_id=movie_id, username=request.user.get_username())
+        if len(history) == 0:
+            movie = Popularity.objects.get(movieid_id=movie_id)
+            weight = movie.weight
+            movie.delete()
+            new_record = Popularity(movieid_id=movie_id, weight=weight + 3)
+            new_record.save()
+            new_record = Expect(movieid_id=movie_id, username=request.user.get_username())
+            new_record.save()
+            return HttpResponse('2')
+        else:
+            history.delete()
+            return HttpResponse('0')
+
+
+@csrf_protect
+def detail(request, model, id):
+    items = []
+    obj = None
+    try:
+        if model.get_name() == 'movie' and id != 'None':
+            try:
+                d = Popularity.objects.get(movieid_id=id)
+                weight = d.weight
+                d.delete()
+                new_record = Popularity(movieid_id=id, weight=weight + 1)
+                new_record.save()
+            except:
+                new_record = Popularity(movieid_id=id, weight=1)
+                new_record.save()
+            obj = model.objects.get(movieid=id)
+            if request.user.get_username() != '':
+                seen_list = [str(x).split('|')[1] for x in
+                             Seen.objects.filter(username=request.user.get_username())]
+                expect_list = [str(y).split('|')[1] for y in
+                               Expect.objects.filter(username=request.user.get_username())]
+                if id in seen_list:
+                    obj.flag = 1
+                if id in expect_list:
+                    obj.flag = 2
+    except:
+        return render(request, '404.html')
+    return render(request, 'detail.html', {'items': items, 'number': len(items), 'object': obj})
+
+
+def whole_list(request, model, page):
+    if page is None:
+        return render(request, '404.html')
+    page = int(page)
+    objects = model.objects.all()
+    total_page = int(math.ceil(len(objects) / 10))
+    if page > total_page:
+        return render(request, '404.html')
+
+    pages, last_item_index = get_pages(page, total_page, objects)
+    data = {'items': objects[10 * (page - 1):last_item_index], 'current_page': page, 'page_number': total_page,
+            'pages': pages}
+    return render(request, '{}_list.html'.format(model.get_name()), data)
+
+
+def get_pages(page, total_page, objects):
+    last_item_index = 10 * page if page != total_page else len(objects)
+    pages = []
+    end_distance = total_page - page
+    start_page_num = page - 5 if end_distance >= 5 else page - 10 + end_distance
+    end_page_num = page + 5 if page > 5 else 10
+    for i in range(start_page_num, end_page_num + 1):
+        if 1 <= i <= total_page:
+            pages.append(i)
+
+    return pages, last_item_index
+
+
+def search(request, item, query_string, page):
+    if item is None or query_string is None or page is None:
+        return render(request, '404.html')
+    query_string = query_string.replace("%20", " ")
+    if item == 'movie':
+        result = [search_index.data_in_memory['movie_dict'][movie_id] for movie_id in
+                  search_index.search_movie(query_string)]
+    else:
+        return render(request, '404.html')
+    page = int(page)
+    total_page = int(math.ceil(len(result) / 10))
+    if page > total_page != 0:
+        return render(request, '404.html')
+
+    pages, last_item_index = get_pages(page, total_page, result)
+
+    return render(request, item + '_search.html',
+                  {'items': result[10 * (page - 1):last_item_index], 'length': len(result),
+                   'query_string': query_string, 'current_page': page, 'page_number': total_page, 'pages': pages})
+
+
+def search_suggest(request, query_string):
+    result = search_cache.get(query_string)
+    if result is not None:
+        return HttpResponse(json.dumps(result, ensure_ascii=False))
+    movie_list = []
+    search_result = search_index.search_suggest(query_string)
+    for i in range(len(search_result)):
+        movie_id = search_result[i]
+        movie = search_index.data_in_memory['movie_dict'].get(movie_id)
+        movie_list.append({'movieid': movie.movieid, 'poster': movie.poster, 'title': movie.title})
+        if i == 4:
+            break
+
+    result = {'movie': movie_list, 'text': query_string}
+    search_cache.set(query_string, result)
+    return HttpResponse(json.dumps(result, ensure_ascii=False))
+
+
+@csrf_protect
+def seen(request, movie_id):
+    movies = get_movie_list('seen', request, movie_id)
+    return render(request, 'seen.html', {'items': movies, 'number': len(movies)})
+
+
+def expect(request, movie_id):
+    movies = get_movie_list('expect', request, movie_id)
+    return render(request, 'expect.html', {'items': movies, 'number': len(movies)})
+
+
+def get_movie_list(list_type, request, movie_id):
+    if request.POST:
+        try:
+            if list_type == 'expect':
+                d = Expect.objects.get(username=request.user.get_username(), movieid_id=movie_id)
+            else:
+                d = Seen.objects.get(username=request.user.get_username(), movieid_id=movie_id)
+            d.delete()
+        except:
+            return render(request, '404.html')
+
+    if list_type == 'expect':
+        records = Expect.objects.filter(username=request.user.get_username())
+    else:
+        records = Seen.objects.filter(username=request.user.get_username())
+
+    movies = []
+    for record in records:
+        movie_id = str(record).split('|')[1]
+        movies.append(Movie.objects.get(movieid=movie_id))
+
+    return movies

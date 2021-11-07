@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block mainbody %}
+
+    <div>
+        <h2>{{ length }} movie(s) with "{{ query_string }}":</h2>
+        <hr>
+            <div style="margin-left: 5%">
+                {% for movie in items %}
+                    <h2><a href="/movie/movie_detail/{{ movie.movieid }}" target="_self">{{ movie.title }}</a></h2>
+                    <img src="{{ movie.poster }}" alt="Cannot load photo, sorry!" width="200" height="320">
+                    <hr>
+                {% endfor %}
+            </div>
+        {% if pages %}
+            <div class="wp-paginate">
+                <p>You are in the {{ current_page }} page, {{ page_number }} pages in total</p>
+                {% if current_page != 1 %}
+                    <a href="/movie/search/movie/{{ query_string }}/{{ 1 }}" target="_self">First</a>
+                    <a href="/movie/search/movie/{{ query_string }}/{{ current_page|add:-1 }}" target="_self">Prev</a>
+                {% endif %}
+
+                {% for page in pages %}
+                    {% if page != current_page %}
+                        <a href="/movie/search/movie/{{ query_string }}/{{ page }}" target="_self">{{ page }}</a>
+                    {% else %}
+                        <span class="current">{{ page }}</span>
+                    {% endif %}
+                {% endfor %}
+
+                {% if current_page != page_number %}
+                    <a href="/movie/search/movie/{{ query_string }}/{{ current_page|add:1 }}" target="_self">Next</a>
+                    <a href="/movie/search/movie/{{ query_string }}/{{ page_number }}" target="_self">Last</a>
+                {% endif %}
+            {% endif %}
+        </div>
+
+    </div>
+{% endblock %}
