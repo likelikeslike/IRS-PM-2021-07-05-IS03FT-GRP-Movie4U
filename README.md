@@ -1,4 +1,4 @@
-﻿﻿﻿﻿## SECTION 1 : PROJECT TITLE
+﻿﻿﻿﻿﻿## SECTION 1 : PROJECT TITLE
 ## Movie4U - An Online Movie Recommender System For  You!
 
 <img src="SystemCode/movie4u/static/images/movie.jpg"
@@ -26,8 +26,12 @@ To implement such a personalized recommendation system, the group creates a data
 
 ## SECTION 4 : VIDEO OF SYSTEM MODELLING & USE CASE DEMO
 
-[![Movie4U](http://img.youtube.com/vi/GRzYeqV31VI/0.jpg)](https://www.youtube.com/watch?v=GRzYeqV31VI "Movie4U")
+### System design on YouTube
+[![Movie4U-System Design](http://img.youtube.com/vi/UqFbTpvFhQU/0.jpg)](https://youtu.be/UqFbTpvFhQU "Movie4U-System Design")
 
+---
+### Use case demo on YouTube
+[![Movie4U-Demo](http://img.youtube.com/vi/GRzYeqV31VI/0.jpg)](https://youtu.be/GRzYeqV31VI "Movie4U-Demo")
 
 
 ---
@@ -44,11 +48,11 @@ To implement such a personalized recommendation system, the group creates a data
 ---
 ## SECTION 7 : MISCELLANEOUS
 
-`Refer to Github Folder: Miscellaneous`
-
-### ratings.csv
+`ratings.csv`
 * selected ratings from movielens-20m dataset
 
-### movie_info.csv
+`movie_info.csv`
 
 * movie information with imdb link
+
+`Refer to Github Folder: Miscellaneous`
